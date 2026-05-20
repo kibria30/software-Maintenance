@@ -31,7 +31,7 @@ public class PaintCanvas extends JPanel {
         
         Rectangle clipBounds = g.getClipBounds();
         g.setColor(Color.white);
-        g.fillRect((int)clipBounds.getX(), (int)clipBounds.getX(), 
+        g.fillRect((int)clipBounds.getX(), (int)clipBounds.getY(), 
                     (int)clipBounds.getWidth(), (int)clipBounds.getHeight());
         
         Iterator paintObjectIterator = paintObjects.iterator();
@@ -60,6 +60,7 @@ public class PaintCanvas extends JPanel {
     public void setTemporaryObject(PaintObject temporaryObject) {
         
         this.temporaryObject = temporaryObject;
+        ensurePreferredSizeForObject(temporaryObject);
         repaint();
         
     }
@@ -75,6 +76,7 @@ public class PaintCanvas extends JPanel {
         
         history.addElement(new Vector(paintObjects));
         paintObjects.addElement(newObject);
+        ensurePreferredSizeForObject(newObject);
         repaint();
         
     }
@@ -88,10 +90,38 @@ public class PaintCanvas extends JPanel {
     }
 
     public void undo() { 
+
+        if(history.size() == 0) return;
         
         paintObjects = (Vector)history.lastElement();
         history.removeElement(history.lastElement());
+        repaint();
         
+    }
+
+    private void ensurePreferredSizeForObject(PaintObject object) {
+
+        if(object == null) return;
+
+        Rectangle rect = object.getBoundingBox();
+        if(rect == null) return;
+
+        Dimension current = getPreferredSize();
+
+        int right = (int)(rect.getX() + rect.getWidth());
+        int bottom = (int)(rect.getY() + rect.getHeight());
+
+        int neededWidth = current.width;
+        int neededHeight = current.height;
+
+        if(right > neededWidth) neededWidth = right + 2;
+        if(bottom > neededHeight) neededHeight = bottom + 2;
+
+        if(neededWidth != current.width || neededHeight != current.height) {
+            setPreferredSize(new Dimension(neededWidth, neededHeight));
+            revalidate();
+        }
+
     }
 
 
